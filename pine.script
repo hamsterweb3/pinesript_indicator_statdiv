@@ -1,0 +1,42 @@
+//@version=2
+strategy("STATDIV", overlay=false)
+length = input(title="PeriodEMA",type=integer,defval=30)
+d = close - open
+s1 = 0.0
+s2 = 0.0
+for i = 0 to length-1
+    dd = close[i] - open[i]
+    if  dd > 0
+        s1 := s1 + dd
+        s2 := s2 + dd
+    else
+        s2 := s2 - dd
+        s1 := s1 + 0.0
+L1 = s1/s2       
+plot (L1,color=red)
+
+fEMA(p,len) =>
+    sum=p
+    nn=1
+    for n = 1 to len-1
+        sum := sum+p[n]/(n+1)
+        nn  := nn + 1/(n+1)
+    sum/nn
+
+
+L2 = fEMA(L1,length)
+plot (L2,color=blue)
+
+L3 = fEMA(L2,length)
+plot (L3,color=green)
+plot(0.5,color=black)
+
+longCondition = L1>0.5 and L2>L3
+if (longCondition)
+    strategy.entry("Long", strategy.long)
+    strategy.close("Long", when = (L1<0.5 or L2<L3))
+
+shortCondition = L1<0.5 and L3>L2
+if (shortCondition)
+    strategy.entry("Short", strategy.short)
+    strategy.close("Short", when = (L1>0.5 or L3<L2))
